@@ -1,0 +1,56 @@
+name: Mogi Real Estate Scraper
+
+on:
+  schedule:
+    # Chạy tự động vào lúc 19:00 UTC mỗi ngày (tức là 2:00 sáng giờ Việt Nam)
+    - cron: '0 3 * * *'
+  workflow_dispatch:
+    # Cho phép bấm nút "Run workflow" để chạy thủ công bất cứ lúc nào bằng tay
+
+jobs:
+  scrape-data:
+    runs-on: ubuntu-latest
+
+    steps:
+    # Bước 1: Lấy code từ repository về máy ảo của GitHub
+    - name: Checkout repository code
+      uses: actions/checkout@v4
+
+    # Bước 2: Cài đặt môi trường R trên máy ảo Linux
+    - name: Set up R
+      uses: r-lib/actions/setup-r@v2
+      with:
+        r-version: 'release'
+
+    # Bước 3: Cài đặt các thư viện hệ thống cần thiết cho việc cào web (xml2, httr cần cái này)
+    - name: Install system dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y libcurl4-openssl-dev libssl-dev libxml2-dev
+
+    # Bước 4: Cài đặt các thư viện R (Tự động lưu cache để các lần chạy sau cực kỳ nhanh)
+    - name: Install R packages
+      uses: r-lib/actions/setup-r-dependencies@v2
+      with:
+        packages: |
+          rvest
+          httr
+          xml2
+          dplyr
+          purrr
+          stringr
+          readr
+          lubridate
+
+    # Bước 5: Chạy đoạn script R để cào dữ liệu Mogi
+    - name: Run Mogi Scraper Script
+      run: Rscript mogi_scrape.R
+
+    # Bước 6: Tự động lưu file CSV kết quả ngược trở lại GitHub Repository của bạn
+    - name: Commit and push changes
+      run: |
+        git config --global user.name "github-actions[bot]"
+        git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
+        git add mogi_hcm_raw.csv mogi_scrape_checkpoint.rds || true
+        git commit -m "Automated update: $(date +'%Y-%m-%d %H:%M:%S')" || true
+        git push || true
