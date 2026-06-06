@@ -319,7 +319,7 @@ listing_sources <- tibble(
   source = c("ban", "thue"),
   base_url = c("https://mogi.vn/ho-chi-minh/mua-nha-dat", "https://mogi.vn/ho-chi-minh/thue-nha-dat"),
   loai_gd = c("ban", "thue"),
-  pages = list(1:200, 1:200)
+  pages = list(201:400, 201:400)
 )
 
 # If `pages` is NULL, the script will detect the max pagination page from the first listing page.
